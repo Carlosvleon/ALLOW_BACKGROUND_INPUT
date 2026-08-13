@@ -31,6 +31,10 @@ local monitored_keys = {"up","down","left","right","z","x","return","space","esc
 
 local prev_js_buttons = {}
 
+-- heartbeat for periodic tracing
+local hb_acc = 0
+local hb_count = 0
+
 local function read_config()
   local f = io.open(config_path, "r")
   if not f then return end
@@ -57,18 +61,22 @@ local function cycle_mode()
 end
 
 local function poll_keyboard(dt)
+  dbg_write("poll_keyboard")
   for _,k in ipairs(monitored_keys) do
     local down = love.keyboard.isDown(k)
     if down and not prev_keys[k] then
       love.event.push("keypressed", k, nil, false)
+      dbg_write("push keypressed:" .. k)
     elseif not down and prev_keys[k] then
       love.event.push("keyreleased", k, nil, false)
+      dbg_write("push keyreleased:" .. k)
     end
     prev_keys[k] = down
   end
 end
 
 local function poll_joystick(dt)
+  dbg_write("poll_joystick")
   local sticks = love.joystick.getJoysticks()
   for _,stick in ipairs(sticks) do
     local id = tostring(stick)
@@ -78,8 +86,10 @@ local function poll_joystick(dt)
       local down = stick:isDown(b)
       if down and not prev_js_buttons[id][b] then
         love.event.push("joystickpressed", stick, b)
+        dbg_write("push joystickpressed:" .. tostring(b))
       elseif not down and prev_js_buttons[id][b] then
         love.event.push("joystickreleased", stick, b)
+        dbg_write("push joystickreleased:" .. tostring(b))
       end
       prev_js_buttons[id][b] = down
     end
@@ -120,6 +130,12 @@ love.update = function(dt)
   if _first_update then
     dbg_write("UPDATE_FIRST")
     _first_update = false
+  end
+  hb_acc = hb_acc + dt
+  if hb_acc >= 5 then
+    hb_acc = hb_acc - 5
+    hb_count = hb_count + 1
+    dbg_write("HEARTBEAT_" .. hb_count)
   end
   -- when window not focused and mode enabled, poll and inject events
   local has_focus = love.window and love.window.hasFocus and love.window.hasFocus()
