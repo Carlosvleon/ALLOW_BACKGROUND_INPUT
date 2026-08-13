@@ -1,0 +1,13 @@
+{
+  "id": "allow_background_input",
+  "name": "Allow Background Input",
+  "version": "0.1.0",
+  "api": 2,
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "QUALITY_OF_LIFE",
+  "game_version": ">=0.1.0 <2.0.0",
+  "priority": 50,
+  "permissions": ["filesystem"],
+  "description": "Allow polling keyboard and joystick input while the game window is inactive; configurable in-game via options."
+}

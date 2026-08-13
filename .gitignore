@@ -1,0 +1,7 @@
+.DS_Store
+*.zip
+*.log
+config.lua
+__pycache__/
+/.vscode/
+/.idea/
