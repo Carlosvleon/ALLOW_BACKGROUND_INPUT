@@ -6,12 +6,17 @@ local M = {}
 
 -- Simple debug logger: appends to %APPDATA%/pokemon-love2d/mods/ALLOW_BACKGROUND_INPUT/debug.txt
 local function dbg_write(line)
-  local appdata = os.getenv("APPDATA") or "."
-  local path = appdata .. "\\pokemon-love2d\\mods\\ALLOW_BACKGROUND_INPUT\\debug.txt"
-  local f = io.open(path, "a+")
-  if f then
-    f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. tostring(line) .. "\n")
-    f:close()
+  local ok, err = pcall(function()
+    local appdata = os.getenv("APPDATA") or "."
+    local path = appdata .. "\\pokemon-love2d\\mods\\debug_allow_background_input.txt"
+    local f = io.open(path, "a+")
+    if f then
+      f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. tostring(line) .. "\n")
+      f:close()
+    end
+  end)
+  if not ok then
+    -- swallowing errors to avoid crashing the game during logging
   end
 end
 dbg_write("INIT")
@@ -96,8 +101,10 @@ end
 -- Wrap existing `love` callbacks instead of replacing them. Replacing
 -- `love.update` outright prevents the engine from running its own tick
 -- logic and will hang the game; wrapping preserves previous behavior.
+
 local _old_update = love.update
 local _old_keypressed = love.keypressed
+local _first_update = true
 
 love.keypressed = function(k, scancode, isrepeat)
   if _old_keypressed then
@@ -109,6 +116,10 @@ end
 love.update = function(dt)
   if _old_update then
     pcall(_old_update, dt)
+  end
+  if _first_update then
+    dbg_write("UPDATE_FIRST")
+    _first_update = false
   end
   -- when window not focused and mode enabled, poll and inject events
   local has_focus = love.window and love.window.hasFocus and love.window.hasFocus()
