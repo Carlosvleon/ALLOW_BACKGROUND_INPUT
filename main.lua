@@ -4,6 +4,18 @@
 local love = love
 local M = {}
 
+-- Simple debug logger: appends to %APPDATA%/pokemon-love2d/mods/ALLOW_BACKGROUND_INPUT/debug.txt
+local function dbg_write(line)
+  local appdata = os.getenv("APPDATA") or "."
+  local path = appdata .. "\\pokemon-love2d\\mods\\ALLOW_BACKGROUND_INPUT\\debug.txt"
+  local f = io.open(path, "a+")
+  if f then
+    f:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. tostring(line) .. "\n")
+    f:close()
+  end
+end
+dbg_write("INIT")
+
 local config_path = "mods/ALLOW_BACKGROUND_INPUT/config.lua"
 local modes = {"disabled", "keyboard", "joystick", "both"}
 local mode_index = 1
