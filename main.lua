@@ -81,6 +81,30 @@ function love.update(dt)
     if mode == "joystick" or mode == "both" then poll_joystick(dt) end
   end
 end
+-- Wrap existing `love` callbacks instead of replacing them. Replacing
+-- `love.update` outright prevents the engine from running its own tick
+-- logic and will hang the game; wrapping preserves previous behavior.
+local _old_update = love.update
+local _old_keypressed = love.keypressed
+
+love.keypressed = function(k, scancode, isrepeat)
+  if _old_keypressed then
+    pcall(_old_keypressed, k, scancode, isrepeat)
+  end
+  -- no built-in shortcut by default; menu exposes the setting instead
+end
+
+love.update = function(dt)
+  if _old_update then
+    pcall(_old_update, dt)
+  end
+  -- when window not focused and mode enabled, poll and inject events
+  local has_focus = love.window and love.window.hasFocus and love.window.hasFocus()
+  if not has_focus then
+    if mode == "keyboard" or mode == "both" then poll_keyboard(dt) end
+    if mode == "joystick" or mode == "both" then poll_joystick(dt) end
+  end
+end
 
 -- Mod API for basic display in engine options if supported by engine
 M.name = "Allow Background Input"
